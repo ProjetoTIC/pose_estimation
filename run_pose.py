@@ -10,7 +10,7 @@ from utils.plots import output_to_keypoint, plot_skeleton_kpts
 from utils.general import non_max_suppression_kpt, strip_optimizer
 from torchvision import transforms
 
-
+from isup import isUp
 
 @torch.no_grad()
 def run(poseweights= 'yolov7-w6-pose.pt', source='pose.mp4', device='cpu'):
@@ -39,13 +39,16 @@ def run(poseweights= 'yolov7-w6-pose.pt', source='pose.mp4', device='cpu'):
 
         frame_count, total_fps = 0, 0
 
+        rightarm = False
+        leftarm = False
+
         while cap.isOpened:
 
             print(f"Frame {frame_count} Processing")
             ret, frame = cap.read()
             if ret:
                 orig_image = frame
-
+  
                 # preprocess image
                 image = cv2.cvtColor(orig_image, cv2.COLOR_BGR2RGB)
                 image = letterbox(image, (frame_width), stride=64, auto=True)[0]
@@ -67,8 +70,15 @@ def run(poseweights= 'yolov7-w6-pose.pt', source='pose.mp4', device='cpu'):
 
                 img = cv2.cvtColor(img, cv2.COLOR_RGB2BGR)
 
+            
                 for idx in range(output.shape[0]):
-                    plot_skeleton_kpts(img, output[idx, 7:].T, 3)
+                    kpts = output[idx, 7:].T
+                    rup = isUp(img, kpts, 5, 7, 9, draw=True)
+                #    if True:
+                #        cv2.rectangle(frame, (x2, y2), (x1 + x2, y3 + y2), (0, 255, 0), 2)
+
+                #for idx in range(output.shape[0]):
+                #    plot_skeleton_kpts(img, output[idx, 7:].T, 3)
 
                 if ext.isnumeric():
                     cv2.imshow("Detection", img)
