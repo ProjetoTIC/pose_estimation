@@ -4,6 +4,7 @@ import torch
 import argparse
 import numpy as np
 import sys;
+import paho.mqtt.client as mqtt
 from utils.datasets import letterbox
 from utils.torch_utils import select_device
 from models.experimental import attempt_load
@@ -14,9 +15,22 @@ from torchvision import transforms
 from isup import isUpR
 from isup import isUpL
 
+# MQTT -----------------------------------------
+MQTT_BROKER_HOST = 'mqtt-dashboard.com'
+MQTT_BROKER_PORT = 8884
+MQTT_TOPIC = "teste_python/tic"
+MQTT_CLIENT_ID = 'clientId-cVOTkn9dps'
+# username = 'emqx'
+# password = 'public'
+
+client = mqtt.Client()
+client.connect(MQTT_BROKER_HOST, MQTT_BROKER_PORT, 60)
+
+
+# MQTT -----------------------------------------
+
 @torch.no_grad()
 def run(poseweights= 'yolov7-w6-pose.pt', source='pose.mp4', device='cpu'):
-
     path = source
     ext = path.split('/')[-1].split('.')[-1].strip().lower()
     if ext in ["mp4", "webm", "avi"] or ext not in ["mp4", "webm", "avi"] and ext.isnumeric():
@@ -99,6 +113,8 @@ def run(poseweights= 'yolov7-w6-pose.pt', source='pose.mp4', device='cpu'):
                                         fontScale, color, thickness, cv2.LINE_AA)
                         
                         #MAQTT aqui rapaziada!!!
+                        client.publish('teste_python/tic', 'ambos')
+                        client.loop()
 
                     else:    
                         if Lup == True:
@@ -122,6 +138,8 @@ def run(poseweights= 'yolov7-w6-pose.pt', source='pose.mp4', device='cpu'):
                                             fontScale, color, thickness, cv2.LINE_AA)
                             
                             #MQTT aqui rapaziada!!!
+                            client.publish('teste_python/tic', 'esquerdo')
+                            client.loop()
 
                         else:
                             if Rup == True:
@@ -145,6 +163,8 @@ def run(poseweights= 'yolov7-w6-pose.pt', source='pose.mp4', device='cpu'):
                                                 fontScale, color, thickness, cv2.LINE_AA)
                                 
                                 #MQTT aqui rapaziada!!!
+                                client.publish('teste_python/tic', 'direito')
+                                client.loop()
 
                         
                 #    if True:
@@ -183,7 +203,6 @@ def parse_opt():
 
 def main(opt):
     run(**vars(opt))
-
 
 if __name__ == "__main__":
     opt = parse_opt()
