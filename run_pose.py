@@ -3,6 +3,7 @@ import time
 import torch
 import argparse
 import numpy as np
+import sys;
 from utils.datasets import letterbox
 from utils.torch_utils import select_device
 from models.experimental import attempt_load
@@ -10,7 +11,8 @@ from utils.plots import output_to_keypoint, plot_skeleton_kpts
 from utils.general import non_max_suppression_kpt, strip_optimizer
 from torchvision import transforms
 
-from isup import isUp
+from isup import isUpR
+from isup import isUpL
 
 @torch.no_grad()
 def run(poseweights= 'yolov7-w6-pose.pt', source='pose.mp4', device='cpu'):
@@ -73,7 +75,78 @@ def run(poseweights= 'yolov7-w6-pose.pt', source='pose.mp4', device='cpu'):
             
                 for idx in range(output.shape[0]):
                     kpts = output[idx, 7:].T
-                    rup = isUp(img, kpts, 5, 7, 9, draw=True)
+                    Lup = isUpL(img, kpts, 5, 7, 9, draw=True)
+                    Rup = isUpR(img, kpts, 6, 8, 10, draw=True)
+                    
+                    if Rup == True and Lup == True:
+                        # font
+                        font = cv2.FONT_HERSHEY_COMPLEX
+                        
+                        # org
+                        org = (50, 50)
+                        
+                        # fontScale
+                        fontScale = 1
+                        
+                        # Blue color in BGR
+                        color = (0, 0, 0)
+                        
+                        # Line thickness of 2 px
+                        thickness = 2
+                        
+                        # Using cv2.putText() method
+                        image = cv2.putText(img, 'Dois bracos levantados', org, font, 
+                                        fontScale, color, thickness, cv2.LINE_AA)
+                        
+                        #MAQTT aqui rapaziada!!!
+
+                    else:    
+                        if Lup == True:
+                            # font
+                            font = cv2.FONT_HERSHEY_COMPLEX
+                            
+                            # org
+                            org = (50, 50)
+                            
+                            # fontScale
+                            fontScale = 1
+                            
+                            # Blue color in BGR
+                            color = (0, 0, 0)
+                            
+                            # Line thickness of 2 px
+                            thickness = 2
+                            
+                            # Using cv2.putText() method
+                            image = cv2.putText(img, 'Braco esquerdo levantado', org, font, 
+                                            fontScale, color, thickness, cv2.LINE_AA)
+                            
+                            #MQTT aqui rapaziada!!!
+
+                        else:
+                            if Rup == True:
+                                # font
+                                font = cv2.FONT_HERSHEY_COMPLEX
+                                
+                                # org
+                                org = (50, 50)
+                                
+                                # fontScale
+                                fontScale = 1
+                                
+                                # Blue color in BGR
+                                color = (0, 0, 0)
+                                
+                                # Line thickness of 2 px
+                                thickness = 2
+                                
+                                # Using cv2.putText() method
+                                image = cv2.putText(img, 'Braco direito levantado', org, font, 
+                                                fontScale, color, thickness, cv2.LINE_AA)
+                                
+                                #MQTT aqui rapaziada!!!
+
+                        
                 #    if True:
                 #        cv2.rectangle(frame, (x2, y2), (x1 + x2, y3 + y2), (0, 255, 0), 2)
 
