@@ -3,8 +3,6 @@ import time
 import torch
 import argparse
 import numpy as np
-import sys;
-import paho.mqtt.client as mqtt
 from utils.datasets import letterbox
 from utils.torch_utils import select_device
 from models.experimental import attempt_load
@@ -12,25 +10,28 @@ from utils.plots import output_to_keypoint, plot_skeleton_kpts
 from utils.general import non_max_suppression_kpt, strip_optimizer
 from torchvision import transforms
 
+from mqtt import get_mqtt_client
+
 from isup import isUpR
 from isup import isUpL
 
 # MQTT -----------------------------------------
-MQTT_BROKER_HOST = 'mqtt-dashboard.com'
-MQTT_BROKER_PORT = 8884
-MQTT_TOPIC = "teste_python/tic"
-MQTT_CLIENT_ID = 'clientId-cVOTkn9dps'
-# username = 'emqx'
-# password = 'public'
-
-client = mqtt.Client()
-client.connect(MQTT_BROKER_HOST, MQTT_BROKER_PORT, 60)
-
-
+MQTT_BROKER = 'public.mqtthq.com'
+MQTT_PORT = 1883
+MQTT_TOPIC = 'python-mqtt/tic'
 # MQTT -----------------------------------------
 
 @torch.no_grad()
 def run(poseweights= 'yolov7-w6-pose.pt', source='pose.mp4', device='cpu'):
+    client = get_mqtt_client()
+    client.connect(MQTT_BROKER, port=MQTT_PORT)
+    time.sleep(4)
+    client.loop_start()
+
+    rightArmFlag = False
+    leftArmFlag = False
+    bothArmsFlag = False
+
     path = source
     ext = path.split('/')[-1].split('.')[-1].strip().lower()
     if ext in ["mp4", "webm", "avi"] or ext not in ["mp4", "webm", "avi"] and ext.isnumeric():
@@ -54,9 +55,6 @@ def run(poseweights= 'yolov7-w6-pose.pt', source='pose.mp4', device='cpu'):
         out = cv2.VideoWriter(f"{out_video_name}_result4.mp4", cv2.VideoWriter_fourcc(*'mp4v'), 30, (resize_width, resize_height))
 
         frame_count, total_fps = 0, 0
-
-        rightarm = False
-        leftarm = False
 
         while cap.isOpened:
 
@@ -91,8 +89,10 @@ def run(poseweights= 'yolov7-w6-pose.pt', source='pose.mp4', device='cpu'):
                     kpts = output[idx, 7:].T
                     Lup = isUpL(img, kpts, 5, 7, 9, draw=True)
                     Rup = isUpR(img, kpts, 6, 8, 10, draw=True)
+
+                    bothUp: bool = Rup == True and Lup == True
                     
-                    if Rup == True and Lup == True:
+                    if bothUp:
                         # font
                         font = cv2.FONT_HERSHEY_COMPLEX
                         
@@ -112,9 +112,9 @@ def run(poseweights= 'yolov7-w6-pose.pt', source='pose.mp4', device='cpu'):
                         image = cv2.putText(img, 'Dois bracos levantados', org, font, 
                                         fontScale, color, thickness, cv2.LINE_AA)
                         
-                        #MAQTT aqui rapaziada!!!
-                        client.publish('teste_python/tic', 'ambos')
-                        client.loop()
+                        if (not bothArmsFlag):
+                            bothArmsFlag = True
+                            client.publish('python-mqtt/tic', 'ambos')
 
                     else:    
                         if Lup == True:
@@ -137,9 +137,9 @@ def run(poseweights= 'yolov7-w6-pose.pt', source='pose.mp4', device='cpu'):
                             image = cv2.putText(img, 'Braco esquerdo levantado', org, font, 
                                             fontScale, color, thickness, cv2.LINE_AA)
                             
-                            #MQTT aqui rapaziada!!!
-                            client.publish('teste_python/tic', 'esquerdo')
-                            client.loop()
+                            if (not leftArmFlag):
+                                leftArmFlag = True
+                                client.publish('python-mqtt/tic', 'esquerdo')
 
                         else:
                             if Rup == True:
@@ -162,16 +162,18 @@ def run(poseweights= 'yolov7-w6-pose.pt', source='pose.mp4', device='cpu'):
                                 image = cv2.putText(img, 'Braco direito levantado', org, font, 
                                                 fontScale, color, thickness, cv2.LINE_AA)
                                 
-                                #MQTT aqui rapaziada!!!
-                                client.publish('teste_python/tic', 'direito')
-                                client.loop()
+                                if (not rightArmFlag):
+                                    rightArmFlag = True
+                                    client.publish('python-mqtt/tic', 'direito')
 
-                        
-                #    if True:
-                #        cv2.rectangle(frame, (x2, y2), (x1 + x2, y3 + y2), (0, 255, 0), 2)
+                    if (bothUp != bothArmsFlag): 
+                        bothArmsFlag = bothUp
 
-                #for idx in range(output.shape[0]):
-                #    plot_skeleton_kpts(img, output[idx, 7:].T, 3)
+                    if (Rup != rightArmFlag): 
+                        rightArmFlag = Rup
+
+                    if (Lup != leftArmFlag): 
+                        leftArmFlag = Lup
 
                 if ext.isnumeric():
                     cv2.imshow("Detection", img)
