@@ -13,14 +13,10 @@ from torchvision import transforms
 
 from isup import isUpR
 from isup import isUpL
-from nats_client import get_client, publish 
-
-
+from nats_client import publish 
 
 @torch.no_grad()
 async def run(poseweights= 'yolov7-w6-pose.pt', source='pose.mp4', device='cpu'):
-    client = await get_client()
-
     rightArmFlag = False
     leftArmFlag = False
     bothArmsFlag = False
@@ -106,8 +102,9 @@ async def run(poseweights= 'yolov7-w6-pose.pt', source='pose.mp4', device='cpu')
                                         fontScale, color, thickness, cv2.LINE_AA)
                         
                         if (not bothArmsFlag):
+                            print('both_up')
                             bothArmsFlag = True
-                            publish(client, 'BOTH')
+                            await publish('BOTH')
 
                     else:    
                         if Lup == True:
@@ -131,8 +128,9 @@ async def run(poseweights= 'yolov7-w6-pose.pt', source='pose.mp4', device='cpu')
                                             fontScale, color, thickness, cv2.LINE_AA)
                             
                             if (not leftArmFlag):
+                                print('left_up')
                                 leftArmFlag = True
-                                publish(client, 'LEFT')
+                                await publish('LEFT')
 
                         else:
                             if Rup == True:
@@ -156,8 +154,9 @@ async def run(poseweights= 'yolov7-w6-pose.pt', source='pose.mp4', device='cpu')
                                                 fontScale, color, thickness, cv2.LINE_AA)
                                 
                                 if (not rightArmFlag):
+                                    print('both_up')
                                     rightArmFlag = True
-                                    publish(client, 'RIGHT')
+                                    await publish('RIGHT')
 
                     if (bothUp != bothArmsFlag): 
                         bothArmsFlag = bothUp
