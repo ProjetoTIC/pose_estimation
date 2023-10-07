@@ -1,9 +1,9 @@
 import cv2
 import time
 import torch
+import asyncio
 import argparse
 import numpy as np
-import sys;
 from utils.datasets import letterbox
 from utils.torch_utils import select_device
 from models.experimental import attempt_load
@@ -13,9 +13,17 @@ from torchvision import transforms
 
 from isup import isUpR
 from isup import isUpL
+from nats_client import get_client, publish 
+
+
 
 @torch.no_grad()
-def run(poseweights= 'yolov7-w6-pose.pt', source='pose.mp4', device='cpu'):
+async def run(poseweights= 'yolov7-w6-pose.pt', source='pose.mp4', device='cpu'):
+    client = await get_client()
+
+    rightArmFlag = False
+    leftArmFlag = False
+    bothArmsFlag = False
 
     path = source
     ext = path.split('/')[-1].split('.')[-1].strip().lower()
@@ -40,9 +48,6 @@ def run(poseweights= 'yolov7-w6-pose.pt', source='pose.mp4', device='cpu'):
         out = cv2.VideoWriter(f"{out_video_name}_result4.mp4", cv2.VideoWriter_fourcc(*'mp4v'), 30, (resize_width, resize_height))
 
         frame_count, total_fps = 0, 0
-
-        rightarm = False
-        leftarm = False
 
         while cap.isOpened:
 
@@ -77,8 +82,10 @@ def run(poseweights= 'yolov7-w6-pose.pt', source='pose.mp4', device='cpu'):
                     kpts = output[idx, 7:].T
                     Lup = isUpL(img, kpts, 5, 7, 9, draw=True)
                     Rup = isUpR(img, kpts, 6, 8, 10, draw=True)
+
+                    bothUp: bool = Rup == True and Lup == True
                     
-                    if Rup == True and Lup == True:
+                    if bothUp:
                         # font
                         font = cv2.FONT_HERSHEY_COMPLEX
                         
@@ -98,7 +105,9 @@ def run(poseweights= 'yolov7-w6-pose.pt', source='pose.mp4', device='cpu'):
                         image = cv2.putText(img, 'Dois bracos levantados', org, font, 
                                         fontScale, color, thickness, cv2.LINE_AA)
                         
-                        #MAQTT aqui rapaziada!!!
+                        if (not bothArmsFlag):
+                            bothArmsFlag = True
+                            publish(client, 'BOTH')
 
                     else:    
                         if Lup == True:
@@ -121,7 +130,9 @@ def run(poseweights= 'yolov7-w6-pose.pt', source='pose.mp4', device='cpu'):
                             image = cv2.putText(img, 'Braco esquerdo levantado', org, font, 
                                             fontScale, color, thickness, cv2.LINE_AA)
                             
-                            #MQTT aqui rapaziada!!!
+                            if (not leftArmFlag):
+                                leftArmFlag = True
+                                publish(client, 'LEFT')
 
                         else:
                             if Rup == True:
@@ -144,14 +155,18 @@ def run(poseweights= 'yolov7-w6-pose.pt', source='pose.mp4', device='cpu'):
                                 image = cv2.putText(img, 'Braco direito levantado', org, font, 
                                                 fontScale, color, thickness, cv2.LINE_AA)
                                 
-                                #MQTT aqui rapaziada!!!
+                                if (not rightArmFlag):
+                                    rightArmFlag = True
+                                    publish(client, 'RIGHT')
 
-                        
-                #    if True:
-                #        cv2.rectangle(frame, (x2, y2), (x1 + x2, y3 + y2), (0, 255, 0), 2)
+                    if (bothUp != bothArmsFlag): 
+                        bothArmsFlag = bothUp
 
-                #for idx in range(output.shape[0]):
-                #    plot_skeleton_kpts(img, output[idx, 7:].T, 3)
+                    if (Rup != rightArmFlag): 
+                        rightArmFlag = Rup
+
+                    if (Lup != leftArmFlag): 
+                        leftArmFlag = Lup
 
                 if ext.isnumeric():
                     cv2.imshow("Detection", img)
@@ -181,9 +196,9 @@ def parse_opt():
     return opt
 
 
-def main(opt):
-    run(**vars(opt))
 
+def main(opt):
+    asyncio.run(run(**vars(opt)))
 
 if __name__ == "__main__":
     opt = parse_opt()
