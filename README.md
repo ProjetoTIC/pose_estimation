@@ -22,9 +22,11 @@ https://github.com/WongKinYiu/yolov7/releases/download/v0.1/yolov7-w6-pose.pt
 Ou use no Ubuntu:
 
 ``` wget https://github.com/WongKinYiu/yolov7/releases/download/v0.1/yolov7-w6-pose.pt ```
+## 5. Instale as dependencias:
 
+``` pip install -r requirements.txt```
 
-## 5. Rode o codigo no Terminal:
+## 6. Rode o codigo no Terminal:
 
 ``` python run_pose.py  –-source 0 ```
 
