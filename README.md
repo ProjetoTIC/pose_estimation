@@ -1,9 +1,7 @@
-# Tutorial Detecção de queda idoso
+# Tutorial Detecção de Queda Idoso
 
 ## 1.	Clone o repo o diretório utilizando Terminal
-``` git clone  https://github.com/ProjetoTIC/pose_estimation/ ```
-
-Or 
+``` git clone  https://github.com/ProjetoTIC/pose_estimation/ ``` 
 
 ## 2.	Crie um novo ambiente Conda
 
@@ -11,7 +9,6 @@ Or
 
 Ative o novo ambiente Conda  
 ``` conda activate yolov7pose ```
-
 
 ## 3.	Navegue até a pasta pose-estimation  
 ``` cd pose-estimation ```
@@ -22,6 +19,7 @@ https://github.com/WongKinYiu/yolov7/releases/download/v0.1/yolov7-w6-pose.pt
 Ou use no Ubuntu:
 
 ``` wget https://github.com/WongKinYiu/yolov7/releases/download/v0.1/yolov7-w6-pose.pt ```
+
 ## 5. Instale as dependencias:
 
 ``` pip install -r requirements.txt```
@@ -32,7 +30,7 @@ Ou use no Ubuntu:
 
 Para rodar com caminho de video:
 
-``` python run_pose.py  –-source [path to video]```
+``` python run_pose.py  –-source [caminho do video]```
 
 Para rodar na GPU:
 
