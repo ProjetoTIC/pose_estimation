@@ -1,43 +1,41 @@
-# Augmented Statups YOLOv7 Pose-Estimation Tutorial
+# Tutorial Detecção de queda idoso
 
-## 1.	Clone the repo to your working directory using Terminal
-``` git clone  https://github.com/augmentedstartups/pose-estimation-yolov7.git ```
+## 1.	Clone o repo o diretório utilizando Terminal
+``` git clone  https://github.com/ProjetoTIC/pose_estimation/ ```
 
 Or 
 
-Download YOLOv7 Pose Files from Course (Includes YOLOv7 Pose Weights)
-
-## 2.	Create a new Conda Environment
+## 2.	Crie um novo ambiente Conda
 
 ``` conda env create -f environment.yml ```
 
-Activate new Conda Environment  
+Ative o novo ambiente Conda  
 ``` conda activate yolov7pose ```
 
 
-## 3.	Navigate to the cloned pose-estimation folder 
+## 3.	Navegue até a pasta pose-estimation  
 ``` cd pose-estimation ```
 
-## 4.	Download the Pose Weights and put it in pose-estimation folder
+## 4.	Baixe os Pose Weights e coloque na pasta pose-estimation
 https://github.com/WongKinYiu/yolov7/releases/download/v0.1/yolov7-w6-pose.pt 
 
-Otherwise use on Ubuntu:
+Ou use no Ubuntu:
 
 ``` wget https://github.com/WongKinYiu/yolov7/releases/download/v0.1/yolov7-w6-pose.pt ```
 
 
-## 5. Run Pose Estimation:
+## 5. Rode o codigo no Terminal:
 
 ``` python run_pose.py  –-source 0 ```
 
-To run inference on video:
+Para rodar com caminho de video:
 
 ``` python run_pose.py  –-source [path to video]```
 
-To run on GPU:
+Para rodar na GPU:
 
 ``` python run_pose.py  –-source 0  –-device 0 ```
 
 
-## References
+## Referencias
 YOLOv7 - https://github.com/WongKinYiu/yolov7 
