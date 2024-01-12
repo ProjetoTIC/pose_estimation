@@ -1,6 +1,6 @@
 # Tutorial Detecção de Queda Idoso
 
-## 1.	Clone o repo o diretório utilizando Terminal
+## 1.	Clone o repositorio em um diretório utilizando Terminal
 ``` git clone  https://github.com/ProjetoTIC/pose_estimation/ ``` 
 
 ## 2.	Crie um novo ambiente Conda
